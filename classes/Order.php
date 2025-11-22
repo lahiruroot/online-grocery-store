@@ -1,8 +1,4 @@
 <?php
-/**
- * Order Model
- * Handles order operations
- */
 
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/functions.php';

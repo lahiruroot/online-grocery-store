@@ -1,8 +1,4 @@
 <?php
-/**
- * Logout Page
- * Destroy session and redirect
- */
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';

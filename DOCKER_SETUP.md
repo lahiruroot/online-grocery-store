@@ -66,7 +66,7 @@ To create an admin user, you have two options:
    Or manually:
    ```sql
    INSERT INTO users (name, email, password, role) 
-   VALUES ('Admin', 'admin@freshcart.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+   VALUES ('Admin', 'admin@GroceryKing.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
    ```
    Default password: `admin123` (change after first login!)
 

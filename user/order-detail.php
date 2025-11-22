@@ -1,8 +1,5 @@
 <?php
-/**
- * Order Detail Page
- * Show order details and items
- */
+
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';

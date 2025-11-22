@@ -1,8 +1,4 @@
 <?php
-/**
- * User Dashboard
- * Main dashboard for logged in users
- */
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';
@@ -84,8 +80,22 @@ require_once __DIR__ . '/../includes/header.php';
     <!-- Recent Orders -->
     <div class="mt-4">
         <h2>Recent Orders</h2>
-        
-        <?php if (empty($recentOrders)): ?>
+
+        <?php
+        // Only get the 5 most recent orders, sort by newest first
+        $limitOrders = array_slice(
+            (!empty($recentOrders) ? array_values(
+                // sort by 'created_at' descending (most recent first)
+                usort($recentOrders, function($a, $b) {
+                    return strtotime($b['created_at']) - strtotime($a['created_at']);
+                }) ? $recentOrders : $recentOrders
+            ) : []),
+            0,
+            5
+        );
+        ?>
+
+        <?php if (empty($limitOrders)): ?>
             <div class="alert alert-info mt-4">
                 <p>You have no orders yet. <a href="<?php echo SITE_URL; ?>pages/products.php">Start Shopping</a></p>
             </div>
@@ -101,12 +111,12 @@ require_once __DIR__ . '/../includes/header.php';
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($recentOrders as $ord): ?>
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td style="padding: 1rem;">
+                    <?php foreach ($limitOrders as $ord): ?>
+                        <tr style="border-bottom: 1px solid #e5e7eb;">
+                            <td style="padding: 1rem;">
                                 <strong><?php echo e($ord['order_number']); ?></strong>
-                                </td>
-                                <td style="padding: 1rem;">
+                            </td>
+                            <td style="padding: 1rem;">
                                 <?php echo formatDate($ord['created_at']); ?>
                             </td>
                             <td style="text-align: right; padding: 1rem;">
@@ -115,8 +125,8 @@ require_once __DIR__ . '/../includes/header.php';
                             <td style="text-align: center; padding: 1rem;">
                                 <span style="padding: 0.25rem 0.75rem; border-radius: 0.25rem; background: #f3f4f6; color: #374151;">
                                     <?php echo ucfirst($ord['status']); ?>
-                                    </span>
-                                </td>
+                                </span>
+                            </td>
                             <td style="text-align: center; padding: 1rem;">
                                 <a href="<?php echo SITE_URL; ?>user/order-detail.php?id=<?php echo $ord['id']; ?>" class="btn btn-small btn-primary">View</a>
                             </td>
@@ -124,12 +134,17 @@ require_once __DIR__ . '/../includes/header.php';
                     <?php endforeach; ?>
                 </tbody>
             </table>
-            
-            <div style="margin-top: 1rem;">
-                <a href="<?php echo SITE_URL; ?>user/orders.php" class="btn btn-outline">View All Orders</a>
-            </div>
-                        <?php endif; ?>
+
+            <?php if (isAdmin()): ?>
+                <div style="margin-top: 1rem;">
+                    <a href="<?php echo SITE_URL; ?>admin/orders/manage.php" class="btn btn-outline">View All Orders</a>
                 </div>
+            <?php else: ?>
+                <div style="margin-top: 1rem;">
+                    <a href="<?php echo SITE_URL; ?>user/orders.php" class="btn btn-outline">View My Orders</a>
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
 
     <!-- Quick Links -->
     <div class="mt-4">
@@ -137,7 +152,6 @@ require_once __DIR__ . '/../includes/header.php';
         <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
             <a href="<?php echo SITE_URL; ?>user/profile.php" class="btn btn-outline">Edit Profile</a>
             <a href="<?php echo SITE_URL; ?>user/orders.php" class="btn btn-outline">My Orders</a>
-            <a href="<?php echo SITE_URL; ?>user/wishlist.php" class="btn btn-outline">My Wishlist</a>
             <a href="<?php echo SITE_URL; ?>pages/products.php" class="btn btn-outline">Continue Shopping</a>
         </div>
     </div>

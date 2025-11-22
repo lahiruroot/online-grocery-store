@@ -1,9 +1,4 @@
 <?php
-/**
- * Cart Model
- * Handles shopping cart operations
- */
-
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/Product.php';

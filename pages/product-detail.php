@@ -1,9 +1,4 @@
 <?php
-/**
- * Product Detail Page
- * Display single product with details, reviews, and add to cart
- */
-
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/../config/db.php';
@@ -27,14 +22,14 @@ $wishlist = new Wishlist();
 $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($productId <= 0) {
-    redirect('products.php');
+    redirect('pages/products.php');
 }
 
 // Get product
 $product = $productModel->getById($productId);
 
 if (!$product || $product['status'] !== 'active') {
-    redirect('products.php');
+    redirect('pages/products.php');
 }
 
 // Get reviews
@@ -74,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['toggle_wishlist']) &&
     } else {
         $wishlist->add(getCurrentUserId(), $productId);
     }
-    redirect('product-detail.php?id=' . $productId);
+    redirect('pages/product-detail.php?id=' . $productId);
 }
 
 $page_title = $product['name'];

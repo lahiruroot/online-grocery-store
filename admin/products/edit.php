@@ -1,8 +1,4 @@
 <?php
-/**
- * Edit Product
- * Admin edit existing product
- */
 
 require_once __DIR__ . '/../../config/constants.php';
 require_once __DIR__ . '/../../config/functions.php';

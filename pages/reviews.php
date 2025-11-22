@@ -1,5 +1,4 @@
 <?php
-// Start session first
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -48,7 +47,7 @@ require_once '../includes/header.php';
                     <div class="flex-between mb-2">
                         <div>
                             <strong><?php echo htmlspecialchars($review['name']); ?></strong>
-                            <p style="color: #6b7280; font-size: 0.875rem;">on <a href="product-detail.php?id=<?php echo $review['product_id']; ?>"><?php echo htmlspecialchars($review['product_name']); ?></a></p>
+                            <p style="color: #6b7280; font-size: 0.875rem;">on <a href="<?php echo SITE_URL; ?>pages/product-detail.php?id=<?php echo $review['product_id']; ?>"><?php echo htmlspecialchars($review['product_name']); ?></a></p>
                         </div>
                         <div style="text-align: right;">
                             <p><?php echo getStarRating($review['rating']); ?></p>

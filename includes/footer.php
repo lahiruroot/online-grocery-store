@@ -2,7 +2,9 @@
     <footer>
         <div class="footer-content">
             <div class="footer-section">
-                <h3>About FreshCart</h3>
+            <a href="<?php echo SITE_URL; ?>" class="navbar-brand">
+                <img src="public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
+            </a>
                 <p>Your trusted online grocery store delivering fresh products directly to your doorstep.</p>
             </div>
 
@@ -32,7 +34,7 @@
                     <li><a href="#">Facebook</a></li>
                     <li><a href="#">Twitter</a></li>
                     <li><a href="#">Instagram</a></li>
-                    <li><a href="#">Email: info@freshcart.com</a></li>
+                    <li><a href="#">Email: info@GroceryKing.com</a></li>
                 </ul>
             </div>
         </div>

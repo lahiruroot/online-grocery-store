@@ -1,9 +1,4 @@
 <?php
-/**
- * Registration Page
- * New user registration
- */
-
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/../classes/User.php';

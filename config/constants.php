@@ -1,9 +1,4 @@
 <?php
-/**
- * Application Constants
- * Site-wide configuration constants
- */
-
 // Prevent direct access
 if (!defined('APP_INIT')) {
     define('APP_INIT', true);
@@ -11,7 +6,7 @@ if (!defined('APP_INIT')) {
 
 // Site Information
 if (!defined('SITE_NAME')) {
-    define('SITE_NAME', 'FreshCart - Online Grocery Store');
+    define('SITE_NAME', 'GroceryKing - Online Grocery Store');
 }
 
 if (!defined('SITE_DESCRIPTION')) {

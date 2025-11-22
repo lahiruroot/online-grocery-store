@@ -1,9 +1,4 @@
 <?php
-/**
- * User Model
- * Handles user-related database operations
- */
-
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/functions.php';
 
@@ -118,9 +113,10 @@ class User {
             $values = [];
             
             foreach ($allowedFields as $field) {
-                if (isset($data[$field])) {
+                // Use array_key_exists to check if key exists, even if value is empty
+                if (array_key_exists($field, $data)) {
                     $updateFields[] = "$field = ?";
-                    $values[] = $data[$field];
+                    $values[] = $data[$field] ?? null;
                 }
             }
             
@@ -132,17 +128,21 @@ class User {
             
             $sql = "UPDATE users SET " . implode(', ', $updateFields) . " WHERE id = ?";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute($values);
+            $result = $stmt->execute($values);
+            
+            if (!$result) {
+                return ['success' => false, 'error' => 'Failed to update profile'];
+            }
             
             // Update session if name changed
-            if (isset($data['name'])) {
+            if (isset($data['name']) && !empty($data['name'])) {
                 $_SESSION['user_name'] = $data['name'];
             }
             
             return ['success' => true];
         } catch (PDOException $e) {
             error_log("Update profile error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to update profile'];
+            return ['success' => false, 'error' => 'Failed to update profile: ' . $e->getMessage()];
         }
     }
     

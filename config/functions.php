@@ -1,9 +1,4 @@
 <?php
-/**
- * Core Helper Functions
- * Utility functions used throughout the application
- */
-
 // Start session if not started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();

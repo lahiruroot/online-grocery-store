@@ -1,10 +1,6 @@
 <?php
-/**
- * Header Template
- * Common header for all pages
- */
 
-// Start session if not already started
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -12,7 +8,6 @@ if (session_status() === PHP_SESSION_NONE) {
 require_once dirname(dirname(__FILE__)) . '/config/constants.php';
 require_once dirname(dirname(__FILE__)) . '/config/functions.php';
 
-// Get cart count for logged in users
 $cartCount = 0;
 if (isLoggedIn()) {
     require_once dirname(dirname(__FILE__)) . '/classes/Cart.php';
@@ -35,12 +30,14 @@ if (isLoggedIn()) {
 <body>
     <header>
         <nav class="navbar">
-            <a href="<?php echo SITE_URL; ?>" class="navbar-brand">FreshCart</a>
+            <a href="<?php echo SITE_URL; ?>" class="navbar-brand">
+                <img src="public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
+            </a>
             <ul class="navbar-menu">
                 <li><a href="<?php echo SITE_URL; ?>">Home</a></li>
                 <li><a href="<?php echo SITE_URL; ?>pages/products.php">Products</a></li>
                 <li><a href="<?php echo SITE_URL; ?>pages/categories.php">Categories</a></li>
-                <li><a href="<?php echo SITE_URL; ?>pages/blogs.php">Blog</a></li>
+                <li><a href="<?php echo SITE_URL; ?>pages/wishlist.php">Wishlist</a></li>
                 <li><a href="<?php echo SITE_URL; ?>pages/about.php">About</a></li>
             </ul>
             <div class="navbar-right">

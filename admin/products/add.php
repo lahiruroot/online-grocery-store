@@ -1,8 +1,4 @@
 <?php
-/**
- * Add Product
- * Admin add new product
- */
 
 require_once __DIR__ . '/../../config/constants.php';
 require_once __DIR__ . '/../../config/functions.php';
@@ -74,86 +70,245 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $page_title = 'Add Product';
+$extra_css = 'admin-add-product.css';
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
-<div class="container mt-4" style="max-width: 800px;">
-    <h1>Add New Product</h1>
+<div class="admin-product-form">
+    <div class="admin-product-form__header">
+        <h1 class="admin-product-form__title">Add New Product</h1>
+        <p class="admin-product-form__subtitle">Fill in the details below to create a new product</p>
+    </div>
 
-    <?php if ($error): ?>
-        <div class="alert alert-error mt-4"><?php echo e($error); ?></div>
-    <?php endif; ?>
+    <div class="admin-product-form__card">
+        <?php if ($error): ?>
+            <div class="admin-alert admin-alert--error">
+                <span class="admin-alert__icon">⚠️</span>
+                <span><?php echo e($error); ?></span>
+            </div>
+        <?php endif; ?>
 
-    <?php if ($success): ?>
-        <div class="alert alert-success mt-4"><?php echo e($success); ?></div>
-    <?php endif; ?>
+        <?php if ($success): ?>
+            <div class="admin-alert admin-alert--success">
+                <span class="admin-alert__icon">✓</span>
+                <span><?php echo e($success); ?></span>
+            </div>
+        <?php endif; ?>
 
-    <form method="POST" enctype="multipart/form-data" class="mt-4">
-        <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Product Name *</label>
-            <input type="text" name="name" value="<?php echo e($formData['name'] ?? ''); ?>" required class="form-control">
+        <form method="POST" enctype="multipart/form-data" class="admin-product-form__form" id="productForm">
+            <div class="admin-form__section">
+                <div class="admin-form__group">
+                    <label for="name" class="admin-form__label admin-form__label--required">Product Name</label>
+                    <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        value="<?php echo e($formData['name'] ?? ''); ?>" 
+                        required 
+                        class="admin-form__input"
+                        placeholder="Enter product name"
+                    >
                 </div>
 
-        <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Category *</label>
-                    <select name="category_id" required class="form-control">
+                <div class="admin-form__group">
+                    <label for="category_id" class="admin-form__label admin-form__label--required">Category</label>
+                    <select id="category_id" name="category_id" required class="admin-form__select">
                         <option value="">Select Category</option>
-                <?php foreach ($categories as $cat): ?>
-                    <option value="<?php echo $cat['id']; ?>" <?php echo ($formData['category_id'] ?? 0) == $cat['id'] ? 'selected' : ''; ?>>
-                        <?php echo e($cat['name']); ?>
+                        <?php foreach ($categories as $cat): ?>
+                            <option value="<?php echo $cat['id']; ?>" <?php echo ($formData['category_id'] ?? 0) == $cat['id'] ? 'selected' : ''; ?>>
+                                <?php echo e($cat['name']); ?>
                             </option>
-                <?php endforeach; ?>
+                        <?php endforeach; ?>
                     </select>
                 </div>
 
-        <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description</label>
-            <textarea name="description" rows="4" class="form-control"><?php echo e($formData['description'] ?? ''); ?></textarea>
+                <div class="admin-form__group">
+                    <label for="description" class="admin-form__label">Description</label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        rows="4" 
+                        class="admin-form__textarea"
+                        placeholder="Enter product description (optional)"
+                    ><?php echo e($formData['description'] ?? ''); ?></textarea>
                 </div>
 
-        <div style="margin-bottom: 1rem;">
-            <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Product Image *</label>
-            <input type="file" name="image" accept="image/*" required class="form-control">
+                <div class="admin-form__group admin-form__image-upload">
+                    <label for="image" class="admin-form__label admin-form__label--required">Product Image</label>
+                    <div class="admin-form__image-preview" id="imagePreview">
+                        <div class="admin-form__image-placeholder">
+                            <div class="admin-form__image-placeholder-icon">📷</div>
+                            <div class="admin-form__image-placeholder-text">No image selected</div>
+                        </div>
+                        <img id="previewImg" src="" alt="Preview">
+                    </div>
+                    <div class="admin-form__file-input">
+                        <input 
+                            type="file" 
+                            id="image" 
+                            name="image" 
+                            accept="image/*" 
+                            required 
+                            class="admin-form__input"
+                        >
+                    </div>
                 </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Price *</label>
-                <input type="number" name="price" step="0.01" min="0" value="<?php echo e($formData['price'] ?? ''); ?>" required class="form-control">
+                <div class="admin-form__row">
+                    <div class="admin-form__group">
+                        <label for="price" class="admin-form__label admin-form__label--required">Price</label>
+                        <input 
+                            type="number" 
+                            id="price" 
+                            name="price" 
+                            step="0.01" 
+                            min="0" 
+                            value="<?php echo e($formData['price'] ?? ''); ?>" 
+                            required 
+                            class="admin-form__input"
+                            placeholder="0.00"
+                        >
+                    </div>
+                    <div class="admin-form__group">
+                        <label for="discount_price" class="admin-form__label">Discount Price</label>
+                        <input 
+                            type="number" 
+                            id="discount_price" 
+                            name="discount_price" 
+                            step="0.01" 
+                            min="0" 
+                            value="<?php echo e($formData['discount_price'] ?? ''); ?>" 
+                            class="admin-form__input"
+                            placeholder="0.00 (optional)"
+                        >
+                    </div>
+                </div>
+
+                <div class="admin-form__row">
+                    <div class="admin-form__group">
+                        <label for="stock_quantity" class="admin-form__label">Stock Quantity</label>
+                        <input 
+                            type="number" 
+                            id="stock_quantity" 
+                            name="stock_quantity" 
+                            min="0" 
+                            value="<?php echo e($formData['stock_quantity'] ?? 0); ?>" 
+                            class="admin-form__input"
+                            placeholder="0"
+                        >
+                    </div>
+                    <div class="admin-form__group">
+                        <label for="status" class="admin-form__label">Status</label>
+                        <select id="status" name="status" class="admin-form__select">
+                            <option value="active" <?php echo ($formData['status'] ?? 'active') === 'active' ? 'selected' : ''; ?>>Active</option>
+                            <option value="inactive" <?php echo ($formData['status'] ?? '') === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="admin-form__group">
+                    <label class="admin-form__checkbox-group">
+                        <input 
+                            type="checkbox" 
+                            name="featured" 
+                            value="1" 
+                            class="admin-form__checkbox"
+                            <?php echo ($formData['featured'] ?? 0) ? 'checked' : ''; ?>
+                        >
+                        <span class="admin-form__checkbox-label">Mark as Featured Product</span>
+                    </label>
+                </div>
             </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Discount Price</label>
-                <input type="number" name="discount_price" step="0.01" min="0" value="<?php echo e($formData['discount_price'] ?? ''); ?>" class="form-control">
-            </div>
-                </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Stock Quantity</label>
-                <input type="number" name="stock_quantity" min="0" value="<?php echo e($formData['stock_quantity'] ?? 0); ?>" class="form-control">
+            <div class="admin-form__actions">
+                <button type="submit" class="admin-btn admin-btn--primary" id="submitBtn">
+                    <span>Create Product</span>
+                </button>
+                <a href="<?php echo SITE_URL; ?>admin/products/manage.php" class="admin-btn admin-btn--secondary">
+                    Cancel
+                </a>
             </div>
-            <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Status</label>
-                <select name="status" class="form-control">
-                    <option value="active" <?php echo ($formData['status'] ?? 'active') === 'active' ? 'selected' : ''; ?>>Active</option>
-                    <option value="inactive" <?php echo ($formData['status'] ?? '') === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
-                </select>
-            </div>
-                </div>
-
-        <div style="margin-bottom: 1rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                <input type="checkbox" name="featured" value="1" <?php echo ($formData['featured'] ?? 0) ? 'checked' : ''; ?>>
-                <span>Featured Product</span>
-            </label>
-                </div>
-
-                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button type="submit" class="btn btn-primary">Create Product</button>
-                    <a href="<?php echo SITE_URL; ?>admin/products/manage.php" class="btn btn-outline">Cancel</a>
-                </div>
-            </form>
+        </form>
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const form = document.getElementById('productForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const priceInput = document.getElementById('price');
+    const discountPriceInput = document.getElementById('discount_price');
+
+    // Image preview functionality
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    imagePreview.classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewImg.src = '';
+                imagePreview.classList.remove('has-image');
+            }
+        });
+    }
+
+    // Form validation
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const price = parseFloat(priceInput.value);
+            const discountPrice = discountPriceInput.value ? parseFloat(discountPriceInput.value) : null;
+
+            // Validate price
+            if (price <= 0) {
+                e.preventDefault();
+                alert('Price must be greater than 0');
+                priceInput.focus();
+                return false;
+            }
+
+            // Validate discount price
+            if (discountPrice !== null && discountPrice >= price) {
+                e.preventDefault();
+                alert('Discount price must be less than regular price');
+                discountPriceInput.focus();
+                return false;
+            }
+
+            // Show loading state
+            submitBtn.classList.add('admin-btn--loading');
+            submitBtn.disabled = true;
+        });
+    }
+
+    // Real-time discount price validation
+    if (discountPriceInput && priceInput) {
+        discountPriceInput.addEventListener('blur', function() {
+            const price = parseFloat(priceInput.value);
+            const discountPrice = this.value ? parseFloat(this.value) : null;
+
+            if (discountPrice !== null && discountPrice >= price) {
+                this.setCustomValidity('Discount price must be less than regular price');
+                this.style.borderColor = '#ef4444';
+            } else {
+                this.setCustomValidity('');
+                this.style.borderColor = '';
+            }
+        });
+
+        priceInput.addEventListener('input', function() {
+            discountPriceInput.dispatchEvent(new Event('blur'));
+        });
+    }
+});
+</script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

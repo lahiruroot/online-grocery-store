@@ -1,9 +1,4 @@
 <?php
-/**
- * Database Configuration
- * Modern PDO-based database connection
- */
-
 require_once __DIR__ . '/constants.php';
 
 class Database {

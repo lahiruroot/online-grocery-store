@@ -1,9 +1,4 @@
 <?php
-/**
- * View Cart Page
- * Display cart items and allow quantity updates
- */
-
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/../config/db.php';

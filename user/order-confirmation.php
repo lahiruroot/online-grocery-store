@@ -1,8 +1,5 @@
 <?php
-/**
- * Order Confirmation Page
- * Display order confirmation after checkout
- */
+
 
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';

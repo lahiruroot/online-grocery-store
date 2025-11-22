@@ -1,8 +1,4 @@
 <?php
-/**
- * Manage Categories
- * Admin category management
- */
 
 require_once __DIR__ . '/../../config/constants.php';
 require_once __DIR__ . '/../../config/functions.php';
