@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: grocery-store-web
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./public/uploads:/var/www/html/public/uploads
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASS=rootpassword
+      - DB_NAME=grocery_store
+    depends_on:
+      - db
+    networks:
+      - grocery-network
+
+  db:
+    image: mysql:8.0
+    container_name: grocery-store-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=grocery_store
+      - MYSQL_USER=grocery_user
+      - MYSQL_PASSWORD=grocery_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - grocery-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  grocery-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+
