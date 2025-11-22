@@ -23,7 +23,7 @@ $orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $orderData = $order->getById($orderId, $userId);
 
 if (!$orderData) {
-    redirect('orders.php');
+    redirect('user/orders.php');
 }
 
 $orderItems = $order->getItems($orderId);

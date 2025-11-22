@@ -81,6 +81,7 @@ header('Content-Type: text/html; charset=utf-8');
 <body>
     <h1>🔧 XAMPP Configuration Debug</h1>
     <p><strong>⚠️ IMPORTANT:</strong> Delete this file after verifying your setup for security!</p>
+    <p><strong>Note:</strong> This project supports both <code>online-grocery-store</code> and <code>grocery-king</code> folder names.</p>
 
     <div class="debug-section">
         <h2>📍 URL Configuration</h2>

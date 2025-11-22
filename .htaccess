@@ -2,10 +2,12 @@
 RewriteEngine On
 
 # Set base directory for XAMPP
-# Auto-detect: If project is in htdocs/online-grocery-store/, use /online-grocery-store/
+# Primary folder: grocery-king
+# If project is in htdocs/grocery-king/, use /grocery-king/
+# If project is in htdocs/online-grocery-store/, use /online-grocery-store/
 # If project is directly in htdocs/, use /
-# This will be auto-detected, but you can manually set it if needed
-RewriteBase /online-grocery-store/
+# This will be auto-detected by PHP, but you can manually set it if needed
+RewriteBase /grocery-king/
 
 # Allow access to static files (CSS, JS, images, etc.)
 <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
@@ -17,7 +19,8 @@ RewriteBase /online-grocery-store/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     # Don't rewrite if it's a file in public directory
-    RewriteCond %{REQUEST_URI} !^/online-grocery-store/public/
+    # Supports both folder names (grocery-king is primary)
+    RewriteCond %{REQUEST_URI} !^/(grocery-king|online-grocery-store)/public/
     # Allow direct access to PHP files
     RewriteCond %{REQUEST_URI} \.php$
     RewriteRule ^(.*)$ - [L]

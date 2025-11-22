@@ -26,42 +26,60 @@ if (!defined('SITE_URL')) {
         $siteUrl = $protocol . '://' . $host . '/';
     } else {
         // XAMPP/localhost - detect base path using multiple methods
-        $basePath = '/online-grocery-store/'; // Default fallback
+        // Primary folder: grocery-king
+        $basePath = null;
         
-        // Method 1: Use REQUEST_URI to detect the path
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $requestUri = $_SERVER['REQUEST_URI'];
-            // Remove query string
-            $requestUri = strtok($requestUri, '?');
-            // Get the path segments
-            $pathParts = explode('/', trim($requestUri, '/'));
+        // Method 1: Use SCRIPT_FILENAME (most reliable - always available)
+        if (isset($_SERVER['SCRIPT_FILENAME']) && isset($_SERVER['DOCUMENT_ROOT'])) {
+            $docRoot = str_replace('\\', '/', rtrim($_SERVER['DOCUMENT_ROOT'], '/\\'));
+            $scriptFile = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
             
-            // Find 'online-grocery-store' in the path
-            $projectIndex = array_search('online-grocery-store', $pathParts);
-            if ($projectIndex !== false) {
-                $basePath = '/' . implode('/', array_slice($pathParts, 0, $projectIndex + 1)) . '/';
-            } else {
-                // Method 2: Use SCRIPT_NAME
-                if (isset($_SERVER['SCRIPT_NAME'])) {
-                    $scriptName = $_SERVER['SCRIPT_NAME'];
-                    if (strpos($scriptName, '/online-grocery-store/') !== false) {
-                        $basePath = '/online-grocery-store/';
-                    } else {
-                        // Method 3: Calculate from document root
-                        $docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
-                        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME']));
-                        
-                        // Calculate relative path from document root
-                        $relativePath = str_replace($docRoot, '', $scriptPath);
-                        $relativePath = str_replace('\\', '/', $relativePath);
-                        $relativePath = trim($relativePath, '/');
-                        
-                        if (!empty($relativePath)) {
-                            $basePath = '/' . $relativePath . '/';
-                        }
-                    }
+            // Calculate relative path from document root
+            if (strpos($scriptFile, $docRoot) === 0) {
+                $relativePath = substr($scriptFile, strlen($docRoot));
+                $relativePath = dirname($relativePath);
+                $relativePath = str_replace('\\', '/', $relativePath);
+                $relativePath = trim($relativePath, '/');
+                
+                if (!empty($relativePath)) {
+                    $basePath = '/' . $relativePath . '/';
                 }
             }
+        }
+        
+        // Method 2: Use SCRIPT_NAME as fallback
+        if (empty($basePath) && isset($_SERVER['SCRIPT_NAME'])) {
+            $scriptName = $_SERVER['SCRIPT_NAME'];
+            if (strpos($scriptName, '/grocery-king/') !== false) {
+                $basePath = '/grocery-king/';
+            } elseif (strpos($scriptName, '/online-grocery-store/') !== false) {
+                $basePath = '/online-grocery-store/';
+            } else {
+                // Extract folder from SCRIPT_NAME
+                $pathParts = explode('/', trim($scriptName, '/'));
+                if (!empty($pathParts[0]) && $pathParts[0] !== 'index.php') {
+                    $basePath = '/' . $pathParts[0] . '/';
+                }
+            }
+        }
+        
+        // Method 3: Use REQUEST_URI as final fallback
+        if (empty($basePath) && isset($_SERVER['REQUEST_URI'])) {
+            $requestUri = $_SERVER['REQUEST_URI'];
+            $requestUri = strtok($requestUri, '?');
+            $pathParts = explode('/', trim($requestUri, '/'));
+            
+            if (!empty($pathParts[0])) {
+                $firstPart = $pathParts[0];
+                if ($firstPart === 'grocery-king' || $firstPart === 'online-grocery-store') {
+                    $basePath = '/' . $firstPart . '/';
+                }
+            }
+        }
+        
+        // Default fallback to grocery-king
+        if (empty($basePath)) {
+            $basePath = '/grocery-king/';
         }
         
         // Ensure basePath ends with /

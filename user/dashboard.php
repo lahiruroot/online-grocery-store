@@ -1,5 +1,5 @@
 <?php
-xamp rout
+
 require_once __DIR__ . '/../config/constants.php';
 require_once __DIR__ . '/../config/functions.php';
 require_once __DIR__ . '/../config/db.php';
@@ -83,16 +83,15 @@ require_once __DIR__ . '/../includes/header.php';
 
         <?php
         // Only get the 5 most recent orders, sort by newest first
-        $limitOrders = array_slice(
-            (!empty($recentOrders) ? array_values(
-                // sort by 'created_at' descending (most recent first)
-                usort($recentOrders, function($a, $b) {
-                    return strtotime($b['created_at']) - strtotime($a['created_at']);
-                }) ? $recentOrders : $recentOrders
-            ) : []),
-            0,
-            5
-        );
+        if (!empty($recentOrders)) {
+            // Sort by 'created_at' descending (most recent first)
+            usort($recentOrders, function($a, $b) {
+                return strtotime($b['created_at']) - strtotime($a['created_at']);
+            });
+            $limitOrders = array_slice($recentOrders, 0, 5);
+        } else {
+            $limitOrders = [];
+        }
         ?>
 
         <?php if (empty($limitOrders)): ?>

@@ -21,13 +21,13 @@ $userId = getCurrentUserId();
 $orderId = isset($_GET['order_id']) ? (int)$_GET['order_id'] : 0;
 
 if ($orderId <= 0) {
-    redirect('dashboard.php');
+    redirect('user/dashboard.php');
 }
 
 $orderData = $order->getById($orderId, $userId);
 
 if (!$orderData) {
-    redirect('dashboard.php');
+    redirect('user/dashboard.php');
 }
 
 $orderItems = $order->getItems($orderId);
