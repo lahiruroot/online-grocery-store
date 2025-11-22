@@ -22,16 +22,16 @@ if (isLoggedIn()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="<?php echo SITE_URL; ?>">
     <title><?php echo isset($page_title) ? e($page_title) . ' - ' . SITE_NAME : SITE_NAME; ?></title>
-    <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="<?php echo SITE_URL; ?>public/css/style.css">
     <?php if (isset($extra_css)): ?>
-        <link rel="stylesheet" href="public/css/<?php echo e($extra_css); ?>">
+        <link rel="stylesheet" href="<?php echo SITE_URL; ?>public/css/<?php echo e($extra_css); ?>">
     <?php endif; ?>
 </head>
 <body>
     <header>
         <nav class="navbar">
             <a href="<?php echo SITE_URL; ?>" class="navbar-brand">
-                <img src="public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
+                <img src="<?php echo SITE_URL; ?>public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
             </a>
             <ul class="navbar-menu">
                 <li><a href="<?php echo SITE_URL; ?>">Home</a></li>

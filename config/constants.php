@@ -18,13 +18,32 @@ if (!defined('SITE_URL')) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     
-    // Check if running in Docker
+    // Check if running in Docker (port 8080 or DB_HOST=db)
     $isDocker = getenv('DB_HOST') === 'db' || (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], '8080') !== false);
     
     if ($isDocker) {
+        // Docker environment - root path
         $siteUrl = $protocol . '://' . $host . '/';
     } else {
-        $siteUrl = $protocol . '://' . $host . '/online-grocery-store/';
+        // XAMPP/localhost - auto-detect base path
+        // Get the directory path from document root
+        $docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME']));
+        
+        // Calculate relative path from document root
+        $relativePath = str_replace($docRoot, '', $scriptPath);
+        $relativePath = str_replace('\\', '/', $relativePath);
+        $relativePath = trim($relativePath, '/');
+        
+        // Build base URL
+        if (!empty($relativePath)) {
+            $basePath = '/' . $relativePath . '/';
+        } else {
+            // If project is directly in htdocs root, use project folder name
+            $basePath = '/online-grocery-store/';
+        }
+        
+        $siteUrl = $protocol . '://' . $host . $basePath;
     }
     
     define('SITE_URL', $siteUrl);

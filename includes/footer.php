@@ -3,7 +3,7 @@
         <div class="footer-content">
             <div class="footer-section">
             <a href="<?php echo SITE_URL; ?>" class="navbar-brand">
-                <img src="public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
+                <img src="<?php echo SITE_URL; ?>public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
             </a>
                 <p>Your trusted online grocery store delivering fresh products directly to your doorstep.</p>
             </div>

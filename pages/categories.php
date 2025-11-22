@@ -7,7 +7,10 @@ require_once __DIR__ . '/../classes/Category.php';
 try {
     $db = Database::getInstance()->getConnection();
 } catch (Exception $e) {
-    die("Database connection failed.");
+    // Enable error display for debugging
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+    die("Database connection failed: " . $e->getMessage() . "<br><br>Please check:<br>1. MySQL is running in XAMPP<br>2. Database 'grocery_store' exists<br>3. Database credentials are correct in config/db.php");
 }
 
 $category = new Category();

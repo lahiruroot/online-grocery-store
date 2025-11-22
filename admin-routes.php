@@ -1,9 +1,4 @@
 <?php
-/**
- * Admin Routes Helper
- * This page shows all available admin routes
- * Access: http://localhost:8080/admin-routes.php
- */
 
 require_once 'config/constants.php';
 ?>

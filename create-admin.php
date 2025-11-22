@@ -1,9 +1,4 @@
 <?php
-/**
- * Create Admin User
- * Script to create an admin account
- */
-
 require_once __DIR__ . '/config/constants.php';
 require_once __DIR__ . '/config/functions.php';
 require_once __DIR__ . '/config/db.php';

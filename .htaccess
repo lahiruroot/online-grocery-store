@@ -1,8 +1,10 @@
 # Enable Rewrite Engine
 RewriteEngine On
 
-# Set base directory
-RewriteBase /
+# Set base directory for XAMPP
+# If project is in htdocs/online-grocery-store/, use /online-grocery-store/
+# If project is directly in htdocs/, use /
+RewriteBase /online-grocery-store/
 
 # Allow access to static files (CSS, JS, images, etc.)
 <FilesMatch "\.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$">
