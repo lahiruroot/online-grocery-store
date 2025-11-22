@@ -91,6 +91,23 @@ Open your web browser and navigate to:
 http://localhost/online-grocery-store/
 ```
 
+### 8. Verify Configuration (Optional but Recommended)
+
+After setup, verify your configuration by visiting:
+
+```
+http://localhost/online-grocery-store/debug-config.php
+```
+
+This debug page will show you:
+- Current SITE_URL configuration
+- File paths verification
+- CSS/JS asset paths
+- Database connection status
+- Test links to all major pages
+
+**⚠️ IMPORTANT:** Delete `debug-config.php` after verifying your setup for security!
+
 ## Create Admin User
 
 After setting up the database, create an admin user by running:

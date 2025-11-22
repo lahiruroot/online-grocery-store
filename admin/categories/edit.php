@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../classes/Category.php';
 
 if (!isAdmin()) {
-    redirect('index.php');
+    redirect('admin/index.php');
 }
 
 try {
@@ -20,14 +20,14 @@ $category = new Category();
 $categoryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($categoryId <= 0) {
-    redirect('manage.php');
+    redirect('admin/categories/manage.php');
 }
 
 // Get category
 $categoryData = $category->getById($categoryId);
 
 if (!$categoryData) {
-    redirect('manage.php');
+    redirect('admin/categories/manage.php');
 }
 
 $error = '';

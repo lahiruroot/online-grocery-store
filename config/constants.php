@@ -25,23 +25,47 @@ if (!defined('SITE_URL')) {
         // Docker environment - root path
         $siteUrl = $protocol . '://' . $host . '/';
     } else {
-        // XAMPP/localhost - auto-detect base path
-        // Get the directory path from document root
-        $docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
-        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME']));
+        // XAMPP/localhost - detect base path using multiple methods
+        $basePath = '/online-grocery-store/'; // Default fallback
         
-        // Calculate relative path from document root
-        $relativePath = str_replace($docRoot, '', $scriptPath);
-        $relativePath = str_replace('\\', '/', $relativePath);
-        $relativePath = trim($relativePath, '/');
-        
-        // Build base URL
-        if (!empty($relativePath)) {
-            $basePath = '/' . $relativePath . '/';
-        } else {
-            // If project is directly in htdocs root, use project folder name
-            $basePath = '/online-grocery-store/';
+        // Method 1: Use REQUEST_URI to detect the path
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $requestUri = $_SERVER['REQUEST_URI'];
+            // Remove query string
+            $requestUri = strtok($requestUri, '?');
+            // Get the path segments
+            $pathParts = explode('/', trim($requestUri, '/'));
+            
+            // Find 'online-grocery-store' in the path
+            $projectIndex = array_search('online-grocery-store', $pathParts);
+            if ($projectIndex !== false) {
+                $basePath = '/' . implode('/', array_slice($pathParts, 0, $projectIndex + 1)) . '/';
+            } else {
+                // Method 2: Use SCRIPT_NAME
+                if (isset($_SERVER['SCRIPT_NAME'])) {
+                    $scriptName = $_SERVER['SCRIPT_NAME'];
+                    if (strpos($scriptName, '/online-grocery-store/') !== false) {
+                        $basePath = '/online-grocery-store/';
+                    } else {
+                        // Method 3: Calculate from document root
+                        $docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+                        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME']));
+                        
+                        // Calculate relative path from document root
+                        $relativePath = str_replace($docRoot, '', $scriptPath);
+                        $relativePath = str_replace('\\', '/', $relativePath);
+                        $relativePath = trim($relativePath, '/');
+                        
+                        if (!empty($relativePath)) {
+                            $basePath = '/' . $relativePath . '/';
+                        }
+                    }
+                }
+            }
         }
+        
+        // Ensure basePath ends with /
+        $basePath = rtrim($basePath, '/') . '/';
         
         $siteUrl = $protocol . '://' . $host . $basePath;
     }

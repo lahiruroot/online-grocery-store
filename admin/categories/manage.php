@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../classes/Category.php';
 
 if (!isAdmin()) {
-    redirect('index.php');
+    redirect('admin/index.php');
 }
 
 try {
@@ -37,7 +37,7 @@ if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
         setFlashMessage('error', $result['error']);
     }
     
-    redirect('manage.php');
+    redirect('admin/categories/manage.php');
 }
 
 // Get categories

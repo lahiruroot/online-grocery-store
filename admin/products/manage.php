@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../classes/Product.php';
 require_once __DIR__ . '/../../classes/Category.php';
 
 if (!isAdmin()) {
-    redirect('index.php');
+    redirect('admin/index.php');
 }
 
 try {
@@ -22,7 +22,7 @@ $category = new Category();
 // Handle delete
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $product->delete((int)$_GET['delete']);
-    redirect('manage.php');
+    redirect('admin/products/manage.php');
 }
 
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;

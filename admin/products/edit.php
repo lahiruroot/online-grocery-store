@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../classes/Product.php';
 require_once __DIR__ . '/../../classes/Category.php';
 
 if (!isAdmin()) {
-    redirect('index.php');
+    redirect('admin/index.php');
 }
 
 try {
@@ -22,14 +22,14 @@ $category = new Category();
 $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($productId <= 0) {
-    redirect('manage.php');
+    redirect('admin/products/manage.php');
 }
 
 // Get product
 $productData = $product->getById($productId);
 
 if (!$productData) {
-    redirect('manage.php');
+    redirect('admin/products/manage.php');
 }
 
 // Get categories
