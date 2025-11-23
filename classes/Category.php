@@ -14,7 +14,7 @@ class Category {
      */
     public function getAll($status = 'active') {
         try {
-            if ($status) {
+            if ($status && $status !== null && $status !== '') {
                 $stmt = $this->db->prepare("
                     SELECT * FROM categories 
                     WHERE status = ? 
@@ -28,7 +28,8 @@ class Category {
                 ");
             }
             
-            return $stmt->fetchAll();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result ? $result : [];
         } catch (PDOException $e) {
             error_log("Get all categories error: " . $e->getMessage());
             return [];
@@ -93,10 +94,19 @@ class Category {
                 $data['sort_order'] ?? 0
             ]);
             
-            return ['success' => true, 'id' => $this->db->lastInsertId()];
+            $insertId = $this->db->lastInsertId();
+            if ($insertId) {
+                return ['success' => true, 'id' => $insertId];
+            } else {
+                return ['success' => false, 'error' => 'Failed to create category - no ID returned'];
+            }
         } catch (PDOException $e) {
             error_log("Create category error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to create category'];
+            $errorMsg = 'Failed to create category';
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Category with this name already exists';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     
@@ -139,10 +149,18 @@ class Category {
             $stmt = $this->db->prepare($sql);
             $stmt->execute($values);
             
-            return ['success' => true];
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Category not found or no changes made'];
+            }
         } catch (PDOException $e) {
             error_log("Update category error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to update category'];
+            $errorMsg = 'Failed to update category';
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Category with this name already exists';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     
@@ -151,22 +169,40 @@ class Category {
      */
     public function delete($categoryId) {
         try {
+            if ($categoryId <= 0) {
+                return ['success' => false, 'error' => 'Invalid category ID'];
+            }
+            
+            // Check if category exists
+            $category = $this->getById($categoryId);
+            if (!$category) {
+                return ['success' => false, 'error' => 'Category not found'];
+            }
+            
             // Check if category has products
             $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM products WHERE category_id = ?");
             $stmt->execute([$categoryId]);
-            $result = $stmt->fetch();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($result['count'] > 0) {
-                return ['success' => false, 'error' => 'Cannot delete category with existing products'];
+                return ['success' => false, 'error' => 'Cannot delete category with existing products. Please delete or move products first.'];
             }
             
             $stmt = $this->db->prepare("DELETE FROM categories WHERE id = ?");
             $stmt->execute([$categoryId]);
             
-            return ['success' => true];
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Category not found or already deleted'];
+            }
         } catch (PDOException $e) {
             error_log("Delete category error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to delete category'];
+            $errorMsg = 'Failed to delete category';
+            if (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Cannot delete category with existing products';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     

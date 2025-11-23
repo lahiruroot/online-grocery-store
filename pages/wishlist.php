@@ -23,7 +23,7 @@ $userId = getCurrentUserId();
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove'])) {
     $productId = (int)$_POST['product_id'];
     $wishlist->remove($userId, $productId);
-    redirect('user/wishlist.php');
+    redirect('pages/wishlist.php');
 }
 
 $items = $wishlist->getItems($userId);
@@ -87,9 +87,9 @@ require_once __DIR__ . '/../includes/header.php';
                         </div>
                         <div class="product-card-actions">
                             <a href="<?php echo SITE_URL; ?>pages/product-detail.php?id=<?php echo $item['product_id']; ?>" class="btn" style="background: linear-gradient(135deg,rgb(13, 200, 66) 0%,rgb(21, 133, 51) 100%); color: #fff; border: none; width: 100%; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.15); transition: background 0.2s; font-size: 1rem; display: inline-block; text-align: center;">View</a>
-                            <form method="POST" style="display: inline; margin: 0; width: 100%; flex: 1;" onsubmit="return confirm('Are you sure you want to remove this item from your wishlist?');">
+                            <form method="POST" class="remove-wishlist-form" style="display: inline; margin: 0; width: 100%; flex: 1;">
                                 <input type="hidden" name="product_id" value="<?php echo $item['product_id']; ?>">
-                                <button type="submit" name="remove" class="btn" style="background: linear-gradient(135deg,rgb(173, 12, 12) 0%,rgb(172, 10, 10) 100%); color: #fff; border: none; width: 100%; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.15); transition: background 0.2s; font-size: 1rem; display: inline-block; text-align: center;">Remove</button>
+                                <button type="submit" name="remove" class="btn remove-wishlist-btn" style="background: linear-gradient(135deg,rgb(173, 12, 12) 0%,rgb(172, 10, 10) 100%); color: #fff; border: none; width: 100%; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.15); transition: background 0.2s; font-size: 1rem; display: inline-block; text-align: center;">Remove</button>
                             </form>
                         </div>
                     </div>
@@ -102,6 +102,17 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 (function() {
     'use strict';
+    
+    // Handle remove from wishlist confirmation
+    const removeForms = document.querySelectorAll('.remove-wishlist-form');
+    removeForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to remove this item from your wishlist?')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
     
     // Animate product cards on load
     const wishlistGrid = document.getElementById('wishlistGrid');

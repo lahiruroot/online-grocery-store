@@ -117,8 +117,18 @@ class Product {
      */
     public function getAll($filters = [], $page = 1, $perPage = ITEMS_PER_PAGE) {
         try {
-            $where = ["p.status = 'active'"];
+            $where = [];
             $params = [];
+            
+            // Only filter by status if not 'all' (for admin view)
+            if (!isset($filters['status']) || $filters['status'] !== 'all') {
+                if (isset($filters['status'])) {
+                    $where[] = "p.status = ?";
+                    $params[] = $filters['status'];
+                } else {
+                    $where[] = "p.status = 'active'";
+                }
+            }
             
             if (isset($filters['category_id']) && $filters['category_id'] > 0) {
                 $where[] = "p.category_id = ?";
@@ -286,10 +296,22 @@ class Product {
                 $data['featured'] ?? 0
             ]);
             
-            return ['success' => true, 'id' => $this->db->lastInsertId()];
+            $insertId = $this->db->lastInsertId();
+            if ($insertId) {
+                return ['success' => true, 'id' => $insertId];
+            } else {
+                return ['success' => false, 'error' => 'Failed to create product - no ID returned'];
+            }
         } catch (PDOException $e) {
             error_log("Create product error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to create product'];
+            $errorMsg = 'Failed to create product';
+            // Provide more specific error for common issues
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Product with this name or SKU already exists';
+            } elseif (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Invalid category selected';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     
@@ -332,10 +354,18 @@ class Product {
             $stmt = $this->db->prepare($sql);
             $stmt->execute($values);
             
-            return ['success' => true];
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Product not found or no changes made'];
+            }
         } catch (PDOException $e) {
             error_log("Update product error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to update product'];
+            $errorMsg = 'Failed to update product';
+            if (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Invalid category selected';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     
@@ -344,12 +374,40 @@ class Product {
      */
     public function delete($productId) {
         try {
+            if ($productId <= 0) {
+                return ['success' => false, 'error' => 'Invalid product ID'];
+            }
+            
+            // Check if product exists
+            $product = $this->getById($productId);
+            if (!$product) {
+                return ['success' => false, 'error' => 'Product not found'];
+            }
+            
+            // Check if product has orders (optional - you might want to prevent deletion if ordered)
+            $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM order_items WHERE product_id = ?");
+            $stmt->execute([$productId]);
+            $orderCount = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+            
+            if ($orderCount > 0) {
+                return ['success' => false, 'error' => 'Cannot delete product with existing orders'];
+            }
+            
             $stmt = $this->db->prepare("DELETE FROM products WHERE id = ?");
             $stmt->execute([$productId]);
-            return ['success' => true];
+            
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Product not found or already deleted'];
+            }
         } catch (PDOException $e) {
             error_log("Delete product error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to delete product'];
+            $errorMsg = 'Failed to delete product';
+            if (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Cannot delete product with existing orders or reviews';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
     

@@ -38,7 +38,16 @@ require_once __DIR__ . '/../includes/header.php';
     <p><strong>Order Number:</strong> <?php echo e($orderData['order_number']); ?></p>
     <p><strong>Order Date:</strong> <?php echo formatDateTime($orderData['created_at']); ?></p>
     <p><strong>Status:</strong> <?php echo ucfirst($orderData['status']); ?></p>
-    <p><strong>Payment Status:</strong> <?php echo ucfirst($orderData['payment_status']); ?></p>
+    <p><strong>Payment Status:</strong> 
+        <?php 
+        // Display "Completed" when order is delivered and payment is paid, otherwise show the actual payment status
+        if ($orderData['status'] === 'delivered' && $orderData['payment_status'] === 'paid') {
+            echo 'Completed';
+        } else {
+            echo ucfirst($orderData['payment_status']);
+        }
+        ?>
+    </p>
 
     <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
         <!-- Order Items -->

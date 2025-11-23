@@ -6,7 +6,7 @@ if (!defined('APP_INIT')) {
 
 // Site Information
 if (!defined('SITE_NAME')) {
-    define('SITE_NAME', 'GroceryKing - Online Grocery Store');
+    define('SITE_NAME', 'GroceryKing.com');
 }
 
 if (!defined('SITE_DESCRIPTION')) {
@@ -18,75 +18,74 @@ if (!defined('SITE_URL')) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
     
-    // Check if running in Docker (port 8080 or DB_HOST=db)
-    $isDocker = getenv('DB_HOST') === 'db' || (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], '8080') !== false);
+    // XAMPP/localhost - detect base path using multiple methods
+    // Primary folder: grocery-king
+    $basePath = null;
     
-    if ($isDocker) {
-        // Docker environment - root path
-        $siteUrl = $protocol . '://' . $host . '/';
-    } else {
-        // XAMPP/localhost - detect base path using multiple methods
-        // Primary folder: grocery-king
-        $basePath = null;
+    // Method 1: Use SCRIPT_FILENAME (most reliable - always available)
+    if (isset($_SERVER['SCRIPT_FILENAME']) && isset($_SERVER['DOCUMENT_ROOT'])) {
+        $docRoot = str_replace('\\', '/', rtrim($_SERVER['DOCUMENT_ROOT'], '/\\'));
+        $scriptFile = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
         
-        // Method 1: Use SCRIPT_FILENAME (most reliable - always available)
-        if (isset($_SERVER['SCRIPT_FILENAME']) && isset($_SERVER['DOCUMENT_ROOT'])) {
-            $docRoot = str_replace('\\', '/', rtrim($_SERVER['DOCUMENT_ROOT'], '/\\'));
-            $scriptFile = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME']);
+        // Calculate relative path from document root
+        if (strpos($scriptFile, $docRoot) === 0) {
+            $relativePath = substr($scriptFile, strlen($docRoot));
+            $relativePath = str_replace('\\', '/', $relativePath);
+            $relativePath = trim($relativePath, '/');
             
-            // Calculate relative path from document root
-            if (strpos($scriptFile, $docRoot) === 0) {
-                $relativePath = substr($scriptFile, strlen($docRoot));
-                $relativePath = dirname($relativePath);
-                $relativePath = str_replace('\\', '/', $relativePath);
-                $relativePath = trim($relativePath, '/');
-                
-                if (!empty($relativePath)) {
-                    $basePath = '/' . $relativePath . '/';
-                }
-            }
-        }
-        
-        // Method 2: Use SCRIPT_NAME as fallback
-        if (empty($basePath) && isset($_SERVER['SCRIPT_NAME'])) {
-            $scriptName = $_SERVER['SCRIPT_NAME'];
-            if (strpos($scriptName, '/grocery-king/') !== false) {
-                $basePath = '/grocery-king/';
-            } elseif (strpos($scriptName, '/online-grocery-store/') !== false) {
-                $basePath = '/online-grocery-store/';
-            } else {
-                // Extract folder from SCRIPT_NAME
-                $pathParts = explode('/', trim($scriptName, '/'));
-                if (!empty($pathParts[0]) && $pathParts[0] !== 'index.php') {
+            // Extract the base folder (first part of path)
+            $pathParts = explode('/', $relativePath);
+            if (!empty($pathParts[0])) {
+                // Check if it's grocery-king or online-grocery-store
+                if ($pathParts[0] === 'grocery-king' || $pathParts[0] === 'online-grocery-store') {
+                    $basePath = '/' . $pathParts[0] . '/';
+                } elseif ($pathParts[0] !== 'index.php' && $pathParts[0] !== '') {
+                    // Use first folder as base
                     $basePath = '/' . $pathParts[0] . '/';
                 }
             }
         }
-        
-        // Method 3: Use REQUEST_URI as final fallback
-        if (empty($basePath) && isset($_SERVER['REQUEST_URI'])) {
-            $requestUri = $_SERVER['REQUEST_URI'];
-            $requestUri = strtok($requestUri, '?');
-            $pathParts = explode('/', trim($requestUri, '/'));
-            
-            if (!empty($pathParts[0])) {
-                $firstPart = $pathParts[0];
-                if ($firstPart === 'grocery-king' || $firstPart === 'online-grocery-store') {
-                    $basePath = '/' . $firstPart . '/';
-                }
+    }
+    
+    // Method 2: Use SCRIPT_NAME as fallback
+    if (empty($basePath) && isset($_SERVER['SCRIPT_NAME'])) {
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        if (strpos($scriptName, '/grocery-king/') !== false) {
+            $basePath = '/grocery-king/';
+        } elseif (strpos($scriptName, '/online-grocery-store/') !== false) {
+            $basePath = '/online-grocery-store/';
+        } else {
+            // Extract folder from SCRIPT_NAME
+            $pathParts = explode('/', trim($scriptName, '/'));
+            if (!empty($pathParts[0]) && $pathParts[0] !== 'index.php') {
+                $basePath = '/' . $pathParts[0] . '/';
             }
         }
-        
-        // Default fallback to grocery-king
-        if (empty($basePath)) {
-            $basePath = '/grocery-king/';
-        }
-        
-        // Ensure basePath ends with /
-        $basePath = rtrim($basePath, '/') . '/';
-        
-        $siteUrl = $protocol . '://' . $host . $basePath;
     }
+    
+    // Method 3: Use REQUEST_URI as final fallback
+    if (empty($basePath) && isset($_SERVER['REQUEST_URI'])) {
+        $requestUri = $_SERVER['REQUEST_URI'];
+        $requestUri = strtok($requestUri, '?');
+        $pathParts = explode('/', trim($requestUri, '/'));
+        
+        if (!empty($pathParts[0])) {
+            $firstPart = $pathParts[0];
+            if ($firstPart === 'grocery-king' || $firstPart === 'online-grocery-store') {
+                $basePath = '/' . $firstPart . '/';
+            }
+        }
+    }
+    
+    // Default fallback to grocery-king
+    if (empty($basePath)) {
+        $basePath = '/grocery-king/';
+    }
+    
+    // Ensure basePath ends with /
+    $basePath = rtrim($basePath, '/') . '/';
+    
+    $siteUrl = $protocol . '://' . $host . $basePath;
     
     define('SITE_URL', $siteUrl);
 }
@@ -101,7 +100,19 @@ if (!defined('PUBLIC_PATH')) {
 }
 
 if (!defined('UPLOADS_PATH')) {
-    define('UPLOADS_PATH', BASE_PATH . 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR);
+    $uploadsPath = BASE_PATH . 'public' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+    
+    // Ensure uploads directory exists and is writable
+    if (!is_dir($uploadsPath)) {
+        @mkdir($uploadsPath, 0777, true);
+    }
+    
+    // Ensure directory is writable
+    if (is_dir($uploadsPath) && !is_writable($uploadsPath)) {
+        @chmod($uploadsPath, 0777);
+    }
+    
+    define('UPLOADS_PATH', $uploadsPath);
 }
 
 if (!defined('CONFIG_PATH')) {
@@ -117,9 +128,6 @@ if (!defined('REVIEWS_PER_PAGE')) {
     define('REVIEWS_PER_PAGE', 10);
 }
 
-if (!defined('BLOGS_PER_PAGE')) {
-    define('BLOGS_PER_PAGE', 9);
-}
 
 // Admin
 if (!defined('ADMIN_PATH')) {

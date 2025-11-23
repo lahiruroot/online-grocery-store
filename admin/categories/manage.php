@@ -17,27 +17,32 @@ try {
 
 $category = new Category();
 
-// Handle delete
+// Handle delete - MUST be before any output
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $categoryId = (int)$_GET['delete'];
     
-    // Get category to delete image
-    $categoryData = $category->getById($categoryId);
-    
-    // Delete category
-    $result = $category->delete($categoryId);
-    
-    if ($result['success']) {
-        // Delete category image if it exists
-        if ($categoryData && !empty($categoryData['image'])) {
-            deleteFile($categoryData['image']);
+    if ($categoryId > 0) {
+        // Get category to delete image
+        $categoryData = $category->getById($categoryId);
+        
+        // Delete category
+        $result = $category->delete($categoryId);
+        
+        if ($result['success']) {
+            // Delete category image if it exists
+            if ($categoryData && !empty($categoryData['image'])) {
+                deleteFile($categoryData['image']);
             }
-        setFlashMessage('success', 'Category deleted successfully!');
+            setFlashMessage('success', 'Category deleted successfully!');
+        } else {
+            setFlashMessage('error', $result['error'] ?? 'Failed to delete category');
+        }
     } else {
-        setFlashMessage('error', $result['error']);
+        setFlashMessage('error', 'Invalid category ID');
     }
     
     redirect('admin/categories/manage.php');
+    exit(); // Ensure script stops
 }
 
 // Get categories
@@ -103,7 +108,7 @@ require_once __DIR__ . '/../../includes/header.php';
                         </td>
                         <td style="text-align: center; padding: 1rem;">
                             <a href="<?php echo SITE_URL; ?>admin/categories/edit.php?id=<?php echo $cat['id']; ?>" class="btn btn-small btn-primary">Edit</a>
-                            <a href="?delete=<?php echo $cat['id']; ?>" 
+                            <a href="<?php echo SITE_URL; ?>admin/categories/manage.php?delete=<?php echo $cat['id']; ?>" 
                                onclick="return confirm('Are you sure you want to delete this category? This will also delete all products in this category.');" 
                                class="btn btn-small" style="background: #ef4444; color: white;">Delete</a>
                     </td>

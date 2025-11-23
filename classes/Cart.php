@@ -30,7 +30,7 @@ class Cart {
             // Check if item already in cart
             $stmt = $this->db->prepare("SELECT id, quantity FROM cart WHERE user_id = ? AND product_id = ?");
             $stmt->execute([$userId, $productId]);
-            $existing = $stmt->fetch();
+            $existing = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($existing) {
                 // Update quantity
@@ -160,7 +160,7 @@ class Cart {
         try {
             $stmt = $this->db->prepare("SELECT SUM(quantity) as total FROM cart WHERE user_id = ?");
             $stmt->execute([$userId]);
-            $result = $stmt->fetch();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
             return (int)($result['total'] ?? 0);
         } catch (PDOException $e) {
             return 0;
@@ -177,10 +177,13 @@ class Cart {
             
             foreach ($items as $item) {
                 $price = $this->product->getPrice($item);
-                $total += $price * $item['quantity'];
+                // Convert price string to float for calculation
+                $priceFloat = (float)$price;
+                $quantity = (int)$item['quantity'];
+                $total += $priceFloat * $quantity;
             }
             
-            return $total;
+            return (float)$total;
         } catch (Exception $e) {
             error_log("Get cart total error: " . $e->getMessage());
             return 0;

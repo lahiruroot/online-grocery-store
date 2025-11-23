@@ -19,14 +19,37 @@ try {
 $product = new Product();
 $category = new Category();
 
-// Handle delete
+// Handle delete - MUST be before any output
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    $product->delete((int)$_GET['delete']);
+    $productId = (int)$_GET['delete'];
+    
+    if ($productId > 0) {
+        // Get product to delete image
+        $productData = $product->getById($productId);
+        
+        // Delete product
+        $result = $product->delete($productId);
+        
+        if ($result['success']) {
+            // Delete product image if it exists
+            if ($productData && !empty($productData['image'])) {
+                deleteFile($productData['image']);
+            }
+            setFlashMessage('success', 'Product deleted successfully!');
+        } else {
+            setFlashMessage('error', $result['error'] ?? 'Failed to delete product');
+        }
+    } else {
+        setFlashMessage('error', 'Invalid product ID');
+    }
+    
     redirect('admin/products/manage.php');
+    exit(); // Ensure script stops
 }
 
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$result = $product->getAll([], $page, ITEMS_PER_PAGE);
+// Get all products including inactive for admin
+$result = $product->getAll(['status' => 'all'], $page, ITEMS_PER_PAGE);
 $products = $result['products'];
 $totalPages = $result['pages'];
 
@@ -40,6 +63,15 @@ require_once __DIR__ . '/../../includes/header.php';
         <h1>Manage Products</h1>
             <a href="<?php echo SITE_URL; ?>admin/products/add.php" class="btn btn-primary">Add New Product</a>
     </div>
+
+    <?php 
+    $flash = getFlashMessage();
+    if ($flash): 
+    ?>
+        <div class="alert alert-<?php echo $flash['type']; ?>">
+            <?php echo e($flash['message']); ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (empty($products)): ?>
         <div class="alert alert-info">
@@ -87,7 +119,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     </td>
                         <td style="text-align: center; padding: 1rem;">
                             <a href="<?php echo SITE_URL; ?>admin/products/edit.php?id=<?php echo $prod['id']; ?>" class="btn btn-small btn-primary">Edit</a>
-                            <a href="?delete=<?php echo $prod['id']; ?>" 
+                            <a href="<?php echo SITE_URL; ?>admin/products/manage.php?delete=<?php echo $prod['id']; ?>" 
                                onclick="return confirm('Are you sure you want to delete this product?');" 
                                class="btn btn-small" style="background: #ef4444; color: white;">Delete</a>
                     </td>

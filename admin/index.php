@@ -32,6 +32,19 @@ $totalOrders = $stmt->fetch()['total'];
 $stmt = $db->query("SELECT COUNT(*) as total FROM users WHERE role = 'customer'");
 $totalCustomers = $stmt->fetch()['total'];
 
+// Get order summary statistics
+$stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status = 'delivered'");
+$completedOrders = $stmt->fetch()['total'];
+
+$stmt = $db->query("SELECT COUNT(*) as total FROM orders WHERE status = 'pending'");
+$pendingOrders = $stmt->fetch()['total'];
+
+// Get total revenue (sum of all orders excluding cancelled and refunded)
+// This includes all orders that represent actual sales/revenue
+$stmt = $db->query("SELECT COALESCE(SUM(total_amount), 0) as total_revenue FROM orders WHERE status NOT IN ('cancelled', 'refunded')");
+$revenueResult = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalRevenue = isset($revenueResult['total_revenue']) ? (float)$revenueResult['total_revenue'] : 0.00;
+
 // Get recent orders
 $recentOrders = $order->getAll([], 1, 5);
 $recentOrdersList = $recentOrders['orders'];
@@ -45,7 +58,7 @@ require_once __DIR__ . '/../includes/header.php';
     <h1>Admin Dashboard</h1>
 
     <!-- Stats -->
-    <div class="grid grid-cols-3 mt-4" style="gap: 1rem;">
+    <div class="grid grid-cols-4 mt-4" style="gap: 1rem;">
         <div class="card">
             <div class="card-body text-center">
                 <h2><?php echo $totalProducts; ?></h2>
@@ -55,9 +68,9 @@ require_once __DIR__ . '/../includes/header.php';
         </div>
         <div class="card">
             <div class="card-body text-center">
-                <h2><?php echo $totalOrders; ?></h2>
-                <p>Total Orders</p>
-                <a href="<?php echo SITE_URL; ?>admin/orders/manage.php" class="btn btn-primary btn-small">Manage</a>
+                <h2><?php echo $pendingOrders; ?></h2>
+                <p>New Orders</p>
+                <a href="<?php echo SITE_URL; ?>admin/orders/manage.php?status=pending" class="btn btn-primary btn-small">View New</a>
             </div>
         </div>
         <div class="card">
@@ -65,6 +78,16 @@ require_once __DIR__ . '/../includes/header.php';
                 <h2><?php echo $totalCustomers; ?></h2>
                 <p>Customers</p>
                 <a href="<?php echo SITE_URL; ?>admin/users/manage.php" class="btn btn-primary btn-small">Manage</a>
+            </div>
+        </div>
+        <div class="card" style="background: linear-gradient(135deg,rgb(28, 167, 3) 0%,rgb(13, 206, 187) 100%); color: white;">
+            <div class="card-body text-center">
+                <h2 style="color: white; margin-bottom: 0.5rem; font-size: 1.75rem;"><?php echo formatPrice($totalRevenue); ?></h2>
+                <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 0.5rem; font-weight: 500;">Total Revenue</p>
+                <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.75rem; line-height: 1.6;">
+                    <div>Total Orders: <strong><?php echo $totalOrders; ?></strong></div>
+                    <div>Completed: <strong><?php echo $completedOrders; ?></strong></div>
+                </div>
             </div>
         </div>
     </div>
@@ -116,7 +139,6 @@ require_once __DIR__ . '/../includes/header.php';
             <a href="<?php echo SITE_URL; ?>admin/orders/manage.php" class="btn btn-outline">Manage Orders</a>
             <a href="<?php echo SITE_URL; ?>admin/users/manage.php" class="btn btn-outline">Manage Users</a>
             <a href="<?php echo SITE_URL; ?>admin/reviews/manage.php" class="btn btn-outline">Manage Reviews</a>
-            <a href="<?php echo SITE_URL; ?>admin/blogs/manage.php" class="btn btn-outline">Manage Blogs</a>
         </div>
     </div>
 </div>

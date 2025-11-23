@@ -45,9 +45,23 @@ function getCurrentUser() {
  * Redirect to a URL
  */
 function redirect($path) {
+    // Prevent any output before redirect
+    if (ob_get_level()) {
+        ob_end_clean();
+    }
+    
     $url = strpos($path, 'http') === 0 ? $path : SITE_URL . ltrim($path, '/');
-    header("Location: " . $url);
-    exit();
+    
+    // Ensure no output has been sent
+    if (!headers_sent()) {
+        header("Location: " . $url);
+        exit();
+    } else {
+        // Fallback if headers already sent
+        echo '<script>window.location.href="' . htmlspecialchars($url) . '";</script>';
+        echo '<meta http-equiv="refresh" content="0;url=' . htmlspecialchars($url) . '">';
+        exit();
+    }
 }
 
 /**
@@ -265,25 +279,64 @@ function uploadFile($file, $destinationDir = null) {
         $destinationDir = UPLOADS_PATH;
     }
     
+    // Normalize directory path - ensure it ends with directory separator
+    $destinationDir = rtrim($destinationDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+    
     // Ensure directory exists
     if (!is_dir($destinationDir)) {
-        mkdir($destinationDir, 0755, true);
+        if (!mkdir($destinationDir, 0777, true)) {
+            return ['success' => false, 'error' => 'Failed to create upload directory: ' . $destinationDir];
+        }
     }
     
+    // Check if directory is writable
+    if (!is_writable($destinationDir)) {
+        // Try to make it writable
+        @chmod($destinationDir, 0777);
+        if (!is_writable($destinationDir)) {
+            return ['success' => false, 'error' => 'Upload directory is not writable: ' . $destinationDir];
+        }
+    }
+    
+    // Validate file
     $validation = validateUploadedFile($file);
     if (!$validation['valid']) {
         return ['success' => false, 'error' => $validation['error']];
     }
     
+    // Check if temp file exists
+    if (!isset($file['tmp_name']) || !file_exists($file['tmp_name'])) {
+        return ['success' => false, 'error' => 'Temporary file not found'];
+    }
+    
+    // Get file extension
     $extension = getFileExtension($file['name']);
+    if (empty($extension)) {
+        return ['success' => false, 'error' => 'Invalid file extension'];
+    }
+    
+    // Generate unique filename
     $filename = time() . '_' . uniqid() . '.' . $extension;
     $destination = $destinationDir . $filename;
     
+    // Move uploaded file
     if (move_uploaded_file($file['tmp_name'], $destination)) {
+        // Set proper permissions on uploaded file
+        @chmod($destination, 0644);
         return ['success' => true, 'filename' => $filename];
-}
-
-    return ['success' => false, 'error' => 'Failed to move uploaded file'];
+    }
+    
+    // Provide detailed error message
+    $errorMsg = 'Failed to move uploaded file';
+    if (!is_writable($destinationDir)) {
+        $errorMsg .= ': Directory not writable';
+    } elseif (!file_exists($file['tmp_name'])) {
+        $errorMsg .= ': Temporary file missing';
+    } else {
+        $errorMsg .= ': Check directory permissions for ' . $destinationDir;
+    }
+    
+    return ['success' => false, 'error' => $errorMsg];
 }
 
 /**

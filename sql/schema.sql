@@ -1,7 +1,3 @@
--- ============================================
--- Online Grocery Store Database Schema
--- Clean, Modern MySQL Database Structure
--- ============================================
 
 -- Use the grocery_store database
 USE grocery_store;

@@ -34,13 +34,24 @@ class Order {
             $subtotal = 0;
             foreach ($cartItems as $item) {
                 $price = $this->product->getPrice($item);
-                $subtotal += $price * $item['quantity'];
+                // Convert price string to float for calculation
+                $priceFloat = (float)$price;
+                if ($priceFloat <= 0) {
+                    $this->db->rollBack();
+                    return ['success' => false, 'error' => 'Invalid price for product: ' . $item['name']];
+                }
+                $subtotal += $priceFloat * (int)$item['quantity'];
                 
                 // Check stock
-                if (!$this->product->isInStock($item['product_id'], $item['quantity'])) {
+                if (!$this->product->isInStock($item['product_id'], (int)$item['quantity'])) {
                     $this->db->rollBack();
                     return ['success' => false, 'error' => 'Product ' . $item['name'] . ' is out of stock'];
                 }
+            }
+            
+            if ($subtotal <= 0) {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'Invalid order total'];
             }
             
             $taxAmount = $subtotal * 0.10; // 10% tax
@@ -57,12 +68,12 @@ class Order {
             ");
             
             $stmt->execute([
-                $userId,
+                (int)$userId,
                 $orderNumber,
-                $totalAmount,
-                $subtotal,
-                $taxAmount,
-                $shippingAmount,
+                (float)$totalAmount,
+                (float)$subtotal,
+                (float)$taxAmount,
+                (float)$shippingAmount,
                 $shippingAddress,
                 $billingAddress ?? $shippingAddress,
                 $paymentMethod
@@ -70,10 +81,23 @@ class Order {
             
             $orderId = $this->db->lastInsertId();
             
+            if (!$orderId || $orderId <= 0) {
+                $this->db->rollBack();
+                return ['success' => false, 'error' => 'Failed to create order - no order ID returned'];
+            }
+            
             // Create order items and update stock
             foreach ($cartItems as $item) {
                 $price = $this->product->getPrice($item);
-                $subtotalItem = $price * $item['quantity'];
+                // Convert price string to float for calculation
+                $priceFloat = (float)$price;
+                $quantity = (int)$item['quantity'];
+                $subtotalItem = $priceFloat * $quantity;
+                
+                if ($priceFloat <= 0 || $quantity <= 0) {
+                    $this->db->rollBack();
+                    return ['success' => false, 'error' => 'Invalid item data for: ' . $item['name']];
+                }
                 
                 $stmt = $this->db->prepare("
                     INSERT INTO order_items (order_id, product_id, product_name, product_image, quantity, price, subtotal)
@@ -82,16 +106,16 @@ class Order {
                 
                 $stmt->execute([
                     $orderId,
-                    $item['product_id'],
+                    (int)$item['product_id'],
                     $item['name'],
-                    $item['image'],
-                    $item['quantity'],
-                    $price,
+                    $item['image'] ?? null,
+                    $quantity,
+                    $priceFloat,
                     $subtotalItem
                 ]);
                 
                 // Update stock
-                $this->product->updateStock($item['product_id'], -$item['quantity']);
+                $this->product->updateStock((int)$item['product_id'], -$quantity);
             }
             
             // Clear cart
@@ -103,7 +127,18 @@ class Order {
         } catch (PDOException $e) {
             $this->db->rollBack();
             error_log("Create order error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to create order'];
+            $errorMsg = 'Failed to create order';
+            
+            // Provide more specific error messages
+            if (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Invalid user or product data';
+            } elseif (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                $errorMsg = 'Order number already exists. Please try again.';
+            } elseif (strpos($e->getMessage(), 'CHECK constraint') !== false) {
+                $errorMsg = 'Invalid order data. Please check your cart items.';
+            }
+            
+            return ['success' => false, 'error' => $errorMsg . ' (Error: ' . $e->getMessage() . ')'];
         }
     }
     
@@ -123,7 +158,7 @@ class Order {
                 $stmt->execute([$orderId]);
             }
             
-            return $stmt->fetch();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Get order error: " . $e->getMessage());
             return null;
@@ -146,7 +181,7 @@ class Order {
                 $stmt->execute([$orderNumber]);
             }
             
-            return $stmt->fetch();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Get order by number error: " . $e->getMessage());
             return null;
@@ -167,7 +202,7 @@ class Order {
             ");
             
             $stmt->execute([$orderId]);
-            return $stmt->fetchAll();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             error_log("Get order items error: " . $e->getMessage());
             return [];
@@ -189,12 +224,12 @@ class Order {
             ");
             
             $stmt->execute([$userId, $perPage, $offset]);
-            $orders = $stmt->fetchAll();
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             // Get total count
             $countStmt = $this->db->prepare("SELECT COUNT(*) as total FROM orders WHERE user_id = ?");
             $countStmt->execute([$userId]);
-            $total = $countStmt->fetch()['total'];
+            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
             
             return [
                 'orders' => $orders,
@@ -243,14 +278,14 @@ class Order {
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
-            $orders = $stmt->fetchAll();
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             // Get total count
             $countSql = "SELECT COUNT(*) as total FROM orders o $whereClause";
             $countStmt = $this->db->prepare($countSql);
             $countParams = array_slice($params, 0, -2);
             $countStmt->execute($countParams);
-            $total = $countStmt->fetch()['total'];
+            $total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
             
             return [
                 'orders' => $orders,
@@ -273,8 +308,14 @@ class Order {
                 return ['success' => false, 'error' => 'Invalid status'];
             }
             
-            $stmt = $this->db->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $orderId]);
+            // If status is changed to 'delivered', automatically set payment_status to 'paid'
+            if ($status === 'delivered') {
+                $stmt = $this->db->prepare("UPDATE orders SET status = ?, payment_status = 'paid' WHERE id = ?");
+                $stmt->execute([$status, $orderId]);
+            } else {
+                $stmt = $this->db->prepare("UPDATE orders SET status = ? WHERE id = ?");
+                $stmt->execute([$status, $orderId]);
+            }
             
             return ['success' => true];
         } catch (PDOException $e) {

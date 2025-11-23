@@ -53,17 +53,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($uploadResult['success']) {
                 $formData['image'] = $uploadResult['filename'];
             } else {
-                $error = $uploadResult['error'];
-                }
+                $error = 'Image upload failed: ' . $uploadResult['error'];
             }
+        } elseif (isset($_FILES['image']) && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Handle upload errors
+            $uploadErrors = [
+                UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize',
+                UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE',
+                UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+                UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+                UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+            ];
+            $error = 'Upload error: ' . ($uploadErrors[$_FILES['image']['error']] ?? 'Unknown error');
+        }
         
         if (empty($error)) {
             $result = $product->create($formData);
             if ($result['success']) {
-                $success = 'Product created successfully!';
-                $formData = [];
+                setFlashMessage('success', 'Product created successfully!');
+                redirect('admin/products/manage.php');
             } else {
-                $error = $result['error'];
+                $error = $result['error'] ?? 'Failed to create product';
             }
         }
     }

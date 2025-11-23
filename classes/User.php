@@ -227,12 +227,39 @@ class User {
      */
     public function delete($userId) {
         try {
+            // Check if user exists
+            $user = $this->getById($userId);
+            if (!$user) {
+                return ['success' => false, 'error' => 'User not found'];
+            }
+            
+            // Prevent deleting admin users (optional safety check)
+            if ($user['role'] === 'admin') {
+                // Count total admins
+                $stmt = $this->db->prepare("SELECT COUNT(*) as count FROM users WHERE role = 'admin'");
+                $stmt->execute();
+                $adminCount = $stmt->fetch()['count'];
+                
+                if ($adminCount <= 1) {
+                    return ['success' => false, 'error' => 'Cannot delete the last admin user'];
+                }
+            }
+            
             $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$userId]);
-            return ['success' => true];
+            
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'User not found or already deleted'];
+            }
         } catch (PDOException $e) {
             error_log("Delete user error: " . $e->getMessage());
-            return ['success' => false, 'error' => 'Failed to delete user'];
+            $errorMsg = 'Failed to delete user';
+            if (strpos($e->getMessage(), 'foreign key') !== false) {
+                $errorMsg = 'Cannot delete user with existing orders or reviews';
+            }
+            return ['success' => false, 'error' => $errorMsg];
         }
     }
 }

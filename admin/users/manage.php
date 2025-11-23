@@ -17,14 +17,28 @@ try {
 
 $user = new User();
 
-// Handle delete
+// Handle delete - MUST be before any output
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     $deleteId = (int)$_GET['delete'];
-    // Prevent deleting yourself
-    if ($deleteId !== getCurrentUserId()) {
-        $user->delete($deleteId);
+    
+    if ($deleteId > 0) {
+        // Prevent deleting yourself
+        if ($deleteId === getCurrentUserId()) {
+            setFlashMessage('error', 'You cannot delete your own account');
+        } else {
+            $result = $user->delete($deleteId);
+            if ($result['success']) {
+                setFlashMessage('success', 'User deleted successfully!');
+            } else {
+                setFlashMessage('error', $result['error'] ?? 'Failed to delete user');
+            }
+        }
+    } else {
+        setFlashMessage('error', 'Invalid user ID');
     }
+    
     redirect('admin/users/manage.php');
+    exit(); // Ensure script stops
 }
 
 // Get users with pagination
@@ -45,6 +59,15 @@ require_once __DIR__ . '/../../includes/header.php';
             <span style="color: #6b7280;">Total Users: <?php echo $result['total']; ?></span>
         </div>
     </div>
+
+    <?php 
+    $flash = getFlashMessage();
+    if ($flash): 
+    ?>
+        <div class="alert alert-<?php echo $flash['type']; ?>">
+            <?php echo e($flash['message']); ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (empty($users)): ?>
         <div style="text-align: center; padding: 3rem; background: white; border-radius: 8px;">
@@ -79,7 +102,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <td style="padding: 1rem; color: #6b7280;"><?php echo formatDate($userData['created_at']); ?></td>
                             <td style="padding: 1rem;">
                                 <?php if ($userData['id'] !== getCurrentUserId()): ?>
-                                    <a href="?delete=<?php echo $userData['id']; ?>" 
+                                    <a href="<?php echo SITE_URL; ?>admin/users/manage.php?delete=<?php echo $userData['id']; ?>" 
                                        onclick="return confirm('Are you sure you want to delete this user?');"
                                        style="color: #ef4444; text-decoration: none; font-size: 0.875rem; padding: 0.25rem 0.5rem; border-radius: 4px; transition: background 0.2s;"
                                        onmouseover="this.style.background='#fee2e2'" 

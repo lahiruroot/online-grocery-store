@@ -41,7 +41,13 @@ $page_title = 'Login';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <base href="<?php echo SITE_URL; ?>">
     <title><?php echo $page_title; ?> - <?php echo SITE_NAME; ?></title>
-    <link rel="stylesheet" href="public/css/auth.css">
+    <link rel="stylesheet" href="<?php echo SITE_URL; ?>public/css/auth.css">
+    <style>
+        /* Critical CSS fallback - ensures basic styling loads immediately */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        .auth-container { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; background: #f9fafb; }
+        .auth-box { background: #fff; border-radius: 1rem; box-shadow: 0 20px 60px rgba(0,0,0,0.15); max-width: 450px; width: 100%; padding: 2.5rem; }
+    </style>
 </head>
 <body>
     <div class="auth-container">

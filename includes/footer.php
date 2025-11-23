@@ -5,7 +5,7 @@
             <a href="<?php echo SITE_URL; ?>" class="navbar-brand">
                 <img src="<?php echo SITE_URL; ?>public/images/hero_img.png" alt="GroceryKing" style="height:40px;">
             </a>
-                <p>Your trusted online grocery store delivering fresh products directly to your doorstep.</p>
+                <p>Your trusted GroceryKing delivering fresh products directly to your doorstep.</p>
             </div>
 
             <div class="footer-section">
@@ -13,7 +13,6 @@
                 <ul>
                     <li><a href="<?php echo SITE_URL; ?>">Home</a></li>
                     <li><a href="<?php echo SITE_URL; ?>pages/products.php">Products</a></li>
-                    <li><a href="<?php echo SITE_URL; ?>pages/blogs.php">Blog</a></li>
                     <li><a href="<?php echo SITE_URL; ?>pages/contact.php">Contact</a></li>
                 </ul>
             </div>

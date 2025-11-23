@@ -121,7 +121,7 @@ class Review {
             $where = [];
             $params = [];
             
-            if (isset($filters['status']) && !empty($filters['status'])) {
+            if (isset($filters['status']) && !empty($filters['status']) && $filters['status'] !== 'all') {
                 $where[] = "r.status = ?";
                 $params[] = $filters['status'];
             }
@@ -150,7 +150,7 @@ class Review {
             
             $stmt = $this->db->prepare($sql);
             $stmt->execute($params);
-            $reviews = $stmt->fetchAll();
+            $reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             // Get total count
             $countSql = "SELECT COUNT(*) as total FROM reviews r $whereClause";
@@ -195,9 +195,25 @@ class Review {
      */
     public function delete($reviewId) {
         try {
+            if ($reviewId <= 0) {
+                return ['success' => false, 'error' => 'Invalid review ID'];
+            }
+            
+            // Check if review exists
+            $stmt = $this->db->prepare("SELECT id FROM reviews WHERE id = ?");
+            $stmt->execute([$reviewId]);
+            if (!$stmt->fetch()) {
+                return ['success' => false, 'error' => 'Review not found'];
+            }
+            
             $stmt = $this->db->prepare("DELETE FROM reviews WHERE id = ?");
             $stmt->execute([$reviewId]);
-            return ['success' => true];
+            
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Review not found or already deleted'];
+            }
         } catch (PDOException $e) {
             error_log("Delete review error: " . $e->getMessage());
             return ['success' => false, 'error' => 'Failed to delete review'];

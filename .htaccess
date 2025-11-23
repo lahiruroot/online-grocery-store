@@ -1,6 +1,9 @@
 # Enable Rewrite Engine
 RewriteEngine On
 
+# Allow access to all files (required for XAMPP)
+Require all granted
+
 # Set base directory for XAMPP
 # Primary folder: grocery-king
 # If project is in htdocs/grocery-king/, use /grocery-king/
